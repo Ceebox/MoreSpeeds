@@ -19,7 +19,8 @@ public class MoreSpeedsHost : BaseUnityPlugin
         var file = new FileInfo(typeof(MoreSpeedsHost).Assembly.Location);
         
         sLogger = base.Logger;
-        sLogger.LogInfo($"Loaded {MyPluginInfo.PLUGIN_GUID}::{file.CreationTime}.");
+        sLogger.LogInfo($"Loaded {MyPluginInfo.PLUGIN_GUID}.");
+        sLogger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} compiled at {file.CreationTime}.");
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Unity Function")]
