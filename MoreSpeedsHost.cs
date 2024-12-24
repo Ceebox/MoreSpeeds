@@ -1,8 +1,9 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Logging;
-using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -26,8 +27,11 @@ public class MoreSpeedsHost : BaseUnityPlugin
     [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Unity Function")]
     private void Awake()
     {
+        // Prevent Unity from finding and destroying this object
+        Chainloader.ManagerObject.hideFlags = HideFlags.HideAndDontSave;
+
         var file = new FileInfo(typeof(MoreSpeedsHost).Assembly.Location);
-        
+
         sLogger = base.Logger;
         sLogger.LogInfo($"Loaded {MyPluginInfo.PLUGIN_GUID}.");
         sLogger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} created at {file.CreationTime}.");
