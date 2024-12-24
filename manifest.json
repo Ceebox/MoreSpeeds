@@ -1,0 +1,9 @@
+{
+  "name": "MoreSpeeds",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/Ceebox/MoreSpeeds",
+  "description": "A mod for Gladio Mori to add more game speeds.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2100"
+  ]
+}
