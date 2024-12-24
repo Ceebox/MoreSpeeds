@@ -14,9 +14,14 @@ namespace MoreSpeeds;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class MoreSpeedsHost : BaseUnityPlugin
 {
+    private const string MULTIPLAYER_TIME_OPTIONS_NAME = "TimeScaleMinSettingButtonOptionPanel";
+    private const string BUTTON_OPTIONS_FIELD_NAME = "buttonOptions";
+
     internal static ManualLogSource sLogger;
 
-#region Unity Code
+    private ButtonOptionSelect mFoundOptions;
+
+    #region Unity Code
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Unity Function")]
     private void Awake()
@@ -26,12 +31,25 @@ public class MoreSpeedsHost : BaseUnityPlugin
         sLogger = base.Logger;
         sLogger.LogInfo($"Loaded {MyPluginInfo.PLUGIN_GUID}.");
         sLogger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} created at {file.CreationTime}.");
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Unity Function")]
-    private void OnEnable()
+    private void LateUpdate()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        // In multiplayer, the options are added after the scene is loaded
+        // Take the easy way out and just keep looking for it until we find one
+        if (mFoundOptions != null)
+        {
+            return;
+        }
+
+        if (this.SearchForTimeOptions())
+        {
+            sLogger.LogInfo("Setting up additional time options.");
+            this.AddCustomSpeedOptions(mFoundOptions);
+        }
     }
 
     #endregion
@@ -40,43 +58,37 @@ public class MoreSpeedsHost : BaseUnityPlugin
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Reset
+        mFoundOptions = null;
+    }
+
+    private bool SearchForTimeOptions()
+    {
+        // Unfortunately, the only way to uniquely identify the multiplayer one is through its name
+        foreach (var select in GameObject.FindObjectsOfType<ButtonOptionSelect>())
+        {
+            if (string.Equals(select.name, MULTIPLAYER_TIME_OPTIONS_NAME, System.StringComparison.OrdinalIgnoreCase))
+            {
+                mFoundOptions = select;
+                return true;
+            }
+        }
+
         // Check if we have a settings manager in the scene
-        var settingsManager = GameObject.FindObjectsOfType<MonoBehaviour>()
+        var settingsManager = GameObject.FindObjectsOfType<GameSettingsManager>()
             .OfType<IGameSettingsManager>().FirstOrDefault();
 
-        // TODO: Properly figure out if we're multiplayer (LobbyMultiplayer)
-        // Then find our UI buttons and properly trigger our speed
-
-        if (settingsManager is GameSettingsManagerMultiplayer)
+        if (settingsManager != null && settingsManager is GameSettingsManager)
         {
-            this.SetUpMultiplayerTimeOptions();
+            var settingsPanel = GameObject.FindObjectOfType<GameSettingsPanel>();
+            if (settingsPanel != null)
+            {
+                mFoundOptions = settingsPanel.timeScaleMinSelect;
+                return true;
+            }
         }
-        else if (settingsManager is GameSettingsManager)
-        {
-            this.SetUpLocalTimeOptions();
-        }
-    }
 
-    private void SetUpLocalTimeOptions()
-    {
-        sLogger.LogInfo("Setting up local time options.");
-
-        var settingsPanel = GameObject.FindObjectOfType<GameSettingsPanel>();
-        if (settingsPanel != null)
-        { 
-            this.AddCustomSpeedOptions(settingsPanel.timeScaleMinSelect);
-        }
-    }
-
-    private void SetUpMultiplayerTimeOptions()
-    {
-        sLogger.LogInfo("Setting up multiplayer time options.");
-
-        var obk = GameObject.FindObjectOfType<ButtonOptionSelect>();
-        if (obk != null)
-        {
-            print(obk.name);
-        }
+        return false;
     }
 
     private void AddCustomSpeedOptions(ButtonOptionSelect select)
@@ -85,7 +97,7 @@ public class MoreSpeedsHost : BaseUnityPlugin
         // Reflection time!
 
         var type = typeof(ButtonOptionSelect);
-        var buttonOptions = type.GetField("buttonOptions");
+        var buttonOptions = type.GetField(BUTTON_OPTIONS_FIELD_NAME);
         List<ButtonOption> options = (List<ButtonOption>) buttonOptions.GetValue(select);
 
         foreach (var speed in CustomSpeeds.Speeds)
