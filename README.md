@@ -11,3 +11,9 @@ Also, due to the inaccuracies introduced into the physics engine by the higher s
 
 ## So, why did you make this?
 Because, it is super fun. I initially meddled around with decompiling the original demo, and me and my friends played for hours, running the game at continuously faster paces than intended and it was hilarious. I hope you have as much fun as I do with this mod!
+
+## Contributing / Development
+I likely won't be taking contributions to this mod, unless it breaks and I don't have the time to fix it.
+
+However, if you wish to take this mod further (though it would likely be worth rewriting in your own style), then you will need a development environment for BepinEx set up, and you will also need to own the Gladio Mori game.
+From there, you can add Gladio Mori's Assembly-CSharp as an assembly reference (mine likely won't match up with your install), and away you go!
